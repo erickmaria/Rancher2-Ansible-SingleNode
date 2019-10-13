@@ -1,30 +1,31 @@
-become: yes
-tasks:
-  - name: "Install Docker Dependencies"
-    yum:
-      name: "{{ item.name }}"
-      state: latest
-    with_items:
-      - { name: yum-utils }
-      - { name: device-mapper-persistent-data }
-      - { name: lvm2 }
-  
-  - name: "Add Docker Repository"
-    get_url:
-      url: https://download.docker.com/linux/centos/docker-ce.repo
-      dest: /etc/yum.repos.d/docker-ce.repo
-  
-  - name: "Install Docker"
-    yum:
-      name: "{{ item.name }}"
-      state: latest
-    with_items:
-      - { name: docker-ce-18.09.2 }
-      - { name: docker-ce-cli-18.09.2 }
-      - { name: containerd.io }
-  
-  - name: Start Docker service
-    service:
-      name: docker
-      state: started
-      enabled: yes
+- host: rancher
+  become: yes
+  tasks:
+    - name: "Install Docker Dependencies"
+      yum:
+        name: "{{ item.name }}"
+        state: latest
+      with_items:
+        - { name: yum-utils }
+        - { name: device-mapper-persistent-data }
+        - { name: lvm2 }
+    
+    - name: "Add Docker Repository"
+      get_url:
+        url: https://download.docker.com/linux/centos/docker-ce.repo
+        dest: /etc/yum.repos.d/docker-ce.repo
+    
+    - name: "Install Docker"
+      yum:
+        name: "{{ item.name }}"
+        state: latest
+      with_items:
+        - { name: docker-ce-18.09.2 }
+        - { name: docker-ce-cli-18.09.2 }
+        - { name: containerd.io }
+    
+    - name: Start Docker service
+      service:
+        name: docker
+        state: started
+        enabled: yes

@@ -2,7 +2,7 @@
   become: yes
   tasks:
 
-    - name: "{{ hostvars[groups['server'][0]]['ansible_eth0']['ipv4']['address'] }}"
+    - name: "Intall Rancher 2.3.0"
       command: docker run -d --restart=unless-stopped \
                  -p 80:80 -p 443:443 \
-                 rancher/rancher:v2.2.8
+                 rancher/rancher:v2.3.0
