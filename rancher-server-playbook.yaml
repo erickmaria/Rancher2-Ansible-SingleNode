@@ -5,4 +5,4 @@
     - name: "Intall Rancher 2.3.0"
       command: docker run -d --restart=unless-stopped \
                  -p 80:80 -p 443:443 \
-                 rancher/rancher:v2.3.0
+                 rancher/rancher:v2.2.9
