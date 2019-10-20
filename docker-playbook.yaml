@@ -1,4 +1,4 @@
-- host: rancher
+- hosts: rancher
   become: yes
   tasks:
     - name: "Install Docker Dependencies"

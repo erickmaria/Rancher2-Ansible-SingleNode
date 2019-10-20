@@ -1,0 +1,93 @@
+- hosts: host
+  become: yes
+  vars:
+    SERVER_IP: "{{ groups.server[0] }}"
+    RANCHER_SERVER_URL: "{{ SERVER_IP }}"
+    RANCHER_ADMIN_PASSWORD: "admin"
+    CLUSTER_NAME: "cluster001"
+    ROLEFLAGS: "--etcd --controlplane --worker"
+  tasks:
+
+    - name: "Make Login Racher Server"
+      uri:
+        url: https://{{ SERVER_IP }}/v3-public/localProviders/local?action=login
+        method: POST
+        validate_certs: False
+        body_format: json
+        body: {"username":"admin", "password":"admin"}
+        headers:
+          Content-Type: "application/json"
+        status_code: 201
+      register: login_result
+      until: login_result.status == 201
+      retries: 3
+      delay: 10
+      failed_when: login_result.status not in [201]
+  
+    - name: "Update Rancher Server Password"
+      uri:
+        url: https://{{ SERVER_IP }}/v3/users?action=changepassword
+        method: POST
+        validate_certs: False
+        body_format: json
+        body: '{"currentPassword":"admin", "newPassword":"{{ RANCHER_ADMIN_PASSWORD }}"}'
+        headers:
+          Authorization: "Bearer {{ login_result.json.token }}"
+        status_code: 200
+      when: login_result.status in [201]
+    
+    - name: "Create Api Key"
+      uri:
+        url: https://{{ SERVER_IP }}/v3/token
+        method: POST
+        validate_certs: False
+        body_format: json
+        body: {"type":"token","description":"automation"}
+        headers:
+          Authorization: "Bearer {{ login_result.json.token }}"
+        status_code: 201
+      register: api_key_result
+
+    - name: "Set Rancher Server Url"
+      uri:
+        url: https://{{ SERVER_IP }}/v3/settings/server-url
+        method: PUT
+        validate_certs: False
+        body_format: json
+        body: '{"name":"server-url","value":"{{ RANCHER_SERVER_URL }}"}'
+        headers:
+          Authorization: "Bearer {{ api_key_result.json.token }}"
+        status_code: 200
+    
+    - name: "Create Custom Cluster"
+      uri:
+        url: https://{{ SERVER_IP }}/v3/cluster
+        method: POST
+        validate_certs: False
+        body_format: json
+        body: '{"dockerRootDir":"/var/lib/docker","enableNetworkPolicy":false,"type":"cluster","rancherKubernetesEngineConfig":{"addonJobTimeout":30,"ignoreDockerVersion":true,"sshAgentAuth":false,"type":"rancherKubernetesEngineConfig","authentication":{"type":"authnConfig","strategy":"x509"},"network":{"type":"networkConfig","plugin":"canal"},"ingress":{"type":"ingressConfig","provider":"nginx"},"monitoring":{"type":"monitoringConfig","provider":"metrics-server"},"services":{"type":"rkeConfigServices","kubeApi":{"podSecurityPolicy":false,"type":"kubeAPIService"},"etcd":{"snapshot":false,"type":"etcdService","extraArgs":{"heartbeat-interval":500,"election-timeout":5000}}}},"name":"{{ CLUSTER_NAME }}"}'
+        status_code: 201
+        headers:
+          Authorization: "Bearer {{ api_key_result.json.token }}"
+      register: cluster_result
+    
+    - name: "Get Command To Start The Nodes"
+      uri:
+        url: https://{{ SERVER_IP }}/v3/clusterregistrationtoken
+        method: POST
+        validate_certs: False
+        body_format: json
+        body: ' {"type":"clusterRegistrationToken","clusterId":"{{cluster_result.json.id}}"}'
+        status_code: 201
+        headers:
+          Authorization: "Bearer {{ api_key_result.json.token }}"
+      register: node_command_result
+    
+    - name: "Launch Command On Node"
+      shell: '{{ node_command_result.json.nodeCommand[5:] }} {{ ROLEFLAGS }}'
+
+    - name: "Debug"
+      debug:
+        msg:
+        - "{{ node_command_result.json.nodeCommand }} {{ ROLEFLAGS }}"
+    
