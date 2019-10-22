@@ -11,7 +11,7 @@
       uri:
         url: https://{{ groups.server[0] }}
         method: GET
-        validate_certs: False
+        validate_certs: no
         status_code: 200
       register: result
       until: result.status == 200

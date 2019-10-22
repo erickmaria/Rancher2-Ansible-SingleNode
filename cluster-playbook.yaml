@@ -12,7 +12,7 @@
       uri:
         url: https://{{ SERVER_IP }}/v3-public/localProviders/local?action=login
         method: POST
-        validate_certs: False
+        validate_certs: no
         body_format: json
         body: {"username":"admin", "password":"admin"}
         headers:
@@ -28,7 +28,7 @@
       uri:
         url: https://{{ SERVER_IP }}/v3/users?action=changepassword
         method: POST
-        validate_certs: False
+        validate_certs: no
         body_format: json
         body: '{"currentPassword":"admin", "newPassword":"{{ RANCHER_ADMIN_PASSWORD }}"}'
         headers:
@@ -41,7 +41,7 @@
       uri:
         url: https://{{ SERVER_IP }}/v3/token
         method: POST
-        validate_certs: False
+        validate_certs: no
         body_format: json
         body: {"type":"token","description":"automation"}
         headers:
@@ -54,7 +54,7 @@
       uri:
         url: https://{{ SERVER_IP }}/v3/settings/server-url
         method: PUT
-        validate_certs: False
+        validate_certs: no
         body_format: json
         body: '{"name":"server-url","value":"https://{{ RANCHER_SERVER_URL }}"}'
         headers:
@@ -66,7 +66,7 @@
       uri:
         url: https://{{ SERVER_IP }}/v3/cluster
         method: POST
-        validate_certs: False
+        validate_certs: no
         body_format: json
         body: '{"dockerRootDir":"/var/lib/docker","enableNetworkPolicy":false,"type":"cluster","rancherKubernetesEngineConfig":{"addonJobTimeout":30,"ignoreDockerVersion":true,"sshAgentAuth":false,"type":"rancherKubernetesEngineConfig","authentication":{"type":"authnConfig","strategy":"x509"},"network":{"type":"networkConfig","plugin":"canal"},"ingress":{"type":"ingressConfig","provider":"nginx"},"monitoring":{"type":"monitoringConfig","provider":"metrics-server"},"services":{"type":"rkeConfigServices","kubeApi":{"podSecurityPolicy":false,"type":"kubeAPIService"},"etcd":{"snapshot":false,"type":"etcdService","extraArgs":{"heartbeat-interval":500,"election-timeout":5000}}}},"name":"{{ CLUSTER_NAME }}"}'
         status_code: 201
@@ -79,7 +79,7 @@
       uri:
         url: https://{{ SERVER_IP }}/v3/clusterregistrationtoken
         method: POST
-        validate_certs: False
+        validate_certs: no
         body_format: json
         body: '{"type":"clusterRegistrationToken","clusterId":"{{ cluster.json.id }}"}'
         status_code: 201
