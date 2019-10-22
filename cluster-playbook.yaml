@@ -18,12 +18,12 @@
         headers:
           Content-Type: "application/json"
         status_code: 201
-      register: login_result
-      until: login_result.status == 201
+      register: login
+      until: login.status == 201
       retries: 3
       delay: 10
-      failed_when: login_result.status not in [201]
-  
+      failed_when: login.status not in [201]
+
     - name: "Update Rancher Server Password"
       uri:
         url: https://{{ SERVER_IP }}/v3/users?action=changepassword
@@ -32,9 +32,10 @@
         body_format: json
         body: '{"currentPassword":"admin", "newPassword":"{{ RANCHER_ADMIN_PASSWORD }}"}'
         headers:
-          Authorization: "Bearer {{ login_result.json.token }}"
+          Content-Type: "application/json"
+          Authorization: "Bearer {{ login.json.token }}"
         status_code: 200
-      when: login_result.status in [201]
+      when: login.status in [201]
     
     - name: "Create Api Key"
       uri:
@@ -44,9 +45,10 @@
         body_format: json
         body: {"type":"token","description":"automation"}
         headers:
-          Authorization: "Bearer {{ login_result.json.token }}"
+          Content-Type: "application/json"
+          Authorization: "Bearer {{ login.json.token }}"
         status_code: 201
-      register: api_key_result
+      register: api_key
 
     - name: "Set Rancher Server Url"
       uri:
@@ -54,9 +56,10 @@
         method: PUT
         validate_certs: False
         body_format: json
-        body: '{"name":"server-url","value":"{{ RANCHER_SERVER_URL }}"}'
+        body: '{"name":"server-url","value":"https://{{ RANCHER_SERVER_URL }}"}'
         headers:
-          Authorization: "Bearer {{ api_key_result.json.token }}"
+          Content-Type: "application/json"
+          Authorization: "Bearer {{ api_key.json.token }}"
         status_code: 200
     
     - name: "Create Custom Cluster"
@@ -68,26 +71,39 @@
         body: '{"dockerRootDir":"/var/lib/docker","enableNetworkPolicy":false,"type":"cluster","rancherKubernetesEngineConfig":{"addonJobTimeout":30,"ignoreDockerVersion":true,"sshAgentAuth":false,"type":"rancherKubernetesEngineConfig","authentication":{"type":"authnConfig","strategy":"x509"},"network":{"type":"networkConfig","plugin":"canal"},"ingress":{"type":"ingressConfig","provider":"nginx"},"monitoring":{"type":"monitoringConfig","provider":"metrics-server"},"services":{"type":"rkeConfigServices","kubeApi":{"podSecurityPolicy":false,"type":"kubeAPIService"},"etcd":{"snapshot":false,"type":"etcdService","extraArgs":{"heartbeat-interval":500,"election-timeout":5000}}}},"name":"{{ CLUSTER_NAME }}"}'
         status_code: 201
         headers:
-          Authorization: "Bearer {{ api_key_result.json.token }}"
-      register: cluster_result
+          Content-Type: "application/json"
+          Authorization: "Bearer {{ api_key.json.token }}"
+      register: cluster
     
-    - name: "Get Command To Start The Nodes"
+    - name: "Create Cluster Registration Token"
       uri:
         url: https://{{ SERVER_IP }}/v3/clusterregistrationtoken
         method: POST
         validate_certs: False
         body_format: json
-        body: ' {"type":"clusterRegistrationToken","clusterId":"{{cluster_result.json.id}}"}'
+        body: '{"type":"clusterRegistrationToken","clusterId":"{{ cluster.json.id }}"}'
         status_code: 201
         headers:
-          Authorization: "Bearer {{ api_key_result.json.token }}"
-      register: node_command_result
+          Content-Type: "application/json"
+          Authorization: "Bearer {{ api_key.json.token }}"
+      register: node_command
+    
+    # - name: "Get Command To Start The Nodes"
+    #   uri:
+    #     url: https://{{ SERVER_IP }}/v3/clusterregistrationtoken?id="{{ cluster.json.id }}"
+    #     method: GET
+    #     validate_certs: no
+    #     body_format: json
+    #     status_code: 200
+    #     headers:
+    #       Content-Type: "application/json"
+    #       Authorization: "Bearer {{ api_key.json.token }}"
+    #   register: node_command
     
     - name: "Launch Command On Node"
-      shell: '{{ node_command_result.json.nodeCommand[5:] }} {{ ROLEFLAGS }}'
+      shell: '{{ node_command.json.nodeCommand[5:] }} {{ ROLEFLAGS }}'
 
-    - name: "Debug"
-      debug:
-        msg:
-        - "{{ node_command_result.json.nodeCommand }} {{ ROLEFLAGS }}"
-    
+    # - name: "Debug"
+    #   debug:
+    #     msg:
+    #     - "{{ node_command.json.nodeCommand }} {{ ROLEFLAGS }}"
