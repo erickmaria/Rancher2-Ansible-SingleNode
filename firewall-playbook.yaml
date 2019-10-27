@@ -1,0 +1,84 @@
+- hosts: rancher
+  become: yes
+  tasks:
+  
+    - firewalld:
+        port: 22/tcp
+        zone: public
+        permanent: yes
+        state: enabled
+    
+    - firewalld:
+        port: 80/tcp
+        zone: public
+        permanent: yes
+        state: enabled
+    
+    - firewalld:
+        port: 443/tcp
+        zone: public
+        permanent: yes
+        state: enabled
+    
+    - firewalld:
+        port: 2376/tcp
+        zone: public
+        permanent: yes
+        state: enabled
+
+    - firewalld:
+        port: 2379/tcp
+        zone: public
+        permanent: yes
+        state: enabled
+    
+    - firewalld:
+        port: 2380/tcp
+        zone: public
+        permanent: yes
+        state: enabled
+    
+    - firewalld:
+        port: 4789/tcp
+        zone: public
+        permanent: yes
+        state: enabled
+    
+    - firewalld:
+        port: 6443/tcp
+        zone: public
+        permanent: yes
+        state: enabled
+
+    - firewalld:
+        port: 6783/tcp
+        zone: public
+        permanent: yes
+        state: enabled
+    
+    - firewalld:
+        port: 8472/tcp
+        zone: public
+        permanent: yes
+        state: enabled
+
+    - firewalld:
+        port: 9099/tcp
+        zone: public
+        permanent: yes
+        state: enabled
+    
+    - firewalld:
+        port: 10250/tcp
+        zone: public
+        permanent: yes
+        state: enabled
+    
+    - firewalld:
+        port: 10254/tcp
+        zone: public
+        permanent: yes
+        state: enabled
+
+    - name: firewalld reload
+      command: firewall-cmd --reload

@@ -2,10 +2,11 @@
   become: yes
   vars:
     SERVER_IP: "{{ groups.server[0] }}"
+    HOST_IP: "{{ groups.host[0] }}"
     RANCHER_SERVER_URL: "{{ SERVER_IP }}"
     RANCHER_ADMIN_PASSWORD: "admin"
     CLUSTER_NAME: "cluster001"
-    ROLEFLAGS: "--etcd --controlplane --worker"
+    ROLEFLAGS: "--address {{ HOST_IP }} --etcd --controlplane --worker"
   tasks:
 
     - name: "Make Login Racher Server"

@@ -6,24 +6,26 @@
         name: "{{ item.name }}"
         state: latest
       with_items:
-        - { name: yum-utils }
-        - { name: device-mapper-persistent-data }
         - { name: lvm2 }
+        - { name: yum-utils }
+        - { name: device-mapper }
+        - { name: device-mapper-libs }
+        - { name: device-mapper-event }
+        - { name: device-mapper-event-libs }
+        - { name: device-mapper-persistent-data }
     
     - name: "Add Docker Repository"
       get_url:
         url: https://download.docker.com/linux/centos/docker-ce.repo
         dest: /etc/yum.repos.d/docker-ce.repo
-        mode: 0644
-        
+        mode: 0700   
+    
     - name: "Install Docker"
       yum:
         name: "{{ item.name }}"
         state: latest
       with_items:
-        - { name: docker-ce-18.09.2 }
-        - { name: docker-ce-cli-18.09.2 }
-        - { name: containerd.io }
+        - { name: docker-ce }
     
     - name: Start Docker service
       service:

@@ -1,3 +1,4 @@
 - import_playbook: docker-playbook.yaml
+- import_playbook: firewall-playbook.yaml
 - import_playbook: rancher-playbook.yaml
 - import_playbook: cluster-playbook.yaml

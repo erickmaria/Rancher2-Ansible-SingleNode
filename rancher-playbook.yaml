@@ -2,10 +2,10 @@
   become: yes
   tasks:
 
-    - name: "Intall Rancher 2.2.6"
+    - name: "Intall Rancher 2.3.1"
       command: docker run -d --restart=unless-stopped \
                  -p 80:80 -p 443:443 \
-                 rancher/rancher:v2.2.6
+                 rancher/rancher:v2.3.1
     
     - name: "Waiting Server Being Up"
       uri:
